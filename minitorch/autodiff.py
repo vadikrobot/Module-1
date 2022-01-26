@@ -1,3 +1,6 @@
+import typing as tp
+from collections import deque
+
 variable_count = 1
 
 
@@ -16,11 +19,12 @@ class Variable:
         name (string) : a globally unique name of the variable
     """
 
-    def __init__(self, history, name=None):
+    def __init__(self, history: tp.Optional['History'], name=None):
         global variable_count
-        assert history is None or isinstance(history, History), history
 
         self.history = history
+        self.used = 0
+
         self._derivative = None
 
         # This is a bit simplistic, but make things easier.
@@ -103,6 +107,9 @@ class Variable:
     def __rmul__(self, b):
         return self * b
 
+    def __hash__(self):
+        return self.unique_id
+
     def zeros(self):
         return 0.0
 
@@ -175,7 +182,7 @@ class History:
 
     """
 
-    def __init__(self, last_fn=None, ctx=None, inputs=None):
+    def __init__(self, last_fn: tp.Optional['FunctionBase'] = None, ctx=None, inputs=None):
         self.last_fn = last_fn
         self.ctx = ctx
         self.inputs = inputs
@@ -190,8 +197,7 @@ class History:
         Returns:
             list of numbers : a derivative with respect to `inputs`
         """
-        # TODO: Implement for Task 1.4.
-        raise NotImplementedError('Need to implement for Task 1.4')
+        return self.last_fn.chain_rule(self.ctx, self.inputs, d_output)
 
 
 class FunctionBase:
@@ -257,8 +263,8 @@ class FunctionBase:
         return cls.variable(cls.data(c), back)
 
     @classmethod
-    def chain_rule(cls, ctx, inputs, d_output):
-        """
+    def chain_rule(cls, ctx: Context, inputs: tp.List[Variable], d_output):
+        """inputs
         Implement the derivative chain-rule.
 
         Args:
@@ -271,10 +277,12 @@ class FunctionBase:
             (see `is_constant` to remove unneeded variables)
 
         """
+
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
-        # TODO: Implement for Task 1.3.
-        raise NotImplementedError('Need to implement for Task 1.3')
+
+        deriv = wrap_tuple(cls.backward(ctx, d_output))
+        return [(inputs[i], deriv[i]) for i in range(len(inputs)) if not is_constant(inputs[i])]
 
 
 # Algorithms for backpropagation
@@ -284,7 +292,7 @@ def is_constant(val):
     return not isinstance(val, Variable) or val.history is None
 
 
-def topological_sort(variable):
+def topological_sort(variable) -> tp.List[tp.Type[Variable]]:
     """
     Computes the topological order of the computation graph.
 
@@ -295,22 +303,50 @@ def topological_sort(variable):
         list of Variables : Non-constant Variables in topological order
                             starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+
+    variables_sorted = []
+    q = deque()
+    q.append(variable)
+
+    unique = set()
+
+    while q:
+        variable = q.popleft()
+        variables_sorted.append(variable)
+        if variable.history and variable.history.inputs:
+            for x in variable.history.inputs:
+                if not is_constant(x) and x not in unique:
+                    unique.add(x)
+                    q.append(x)
+
+    return variables_sorted
 
 
-def backpropagate(variable, deriv):
+def backpropagate(leaf_variable: tp.Type[Variable], deriv):
     """
     Runs backpropagation on the computation graph in order to
     compute derivatives for the leave nodes.
 
     See :doc:`backpropagate` for details on the algorithm.
 
-    Args:
+    Args:0
         variable (:class:`Variable`): The right-most variable
         deriv (number) : Its derivative that we want to propagate backward to the leaves.
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+
+    sorted_variables = topological_sort(leaf_variable)
+
+    variables_to_derivatives = {leaf_variable: deriv}
+
+    for variable in sorted_variables:
+        if variable.is_leaf():
+            variable.accumulate_derivative(variables_to_derivatives[variable])
+        else:
+            vars_and_derivative = variable.history.backprop_step(variables_to_derivatives[variable])
+            for _var, _deriv in vars_and_derivative:
+                if _var not in variables_to_derivatives:
+                    variables_to_derivatives[_var] = 0.0
+                variables_to_derivatives[_var] += _deriv
+
