@@ -7,7 +7,7 @@
 
 Results of optimization on Datasets
 
-###Simple
+### Simple
 ```
 PTS = 50
 HIDDEN = 2
@@ -16,7 +16,7 @@ data = minitorch.datasets["Simple"](PTS)
 Epoch  500  loss  0.700677858267683 correct 50
 ```
 
-###Split
+### Split
 ```
 PTS = 50
 HIDDEN = 10
@@ -25,7 +25,7 @@ data = minitorch.datasets["Split"](PTS)
 Epoch  500  loss  3.4009029420130488 correct 49
 ```
 
-###Xor
+### Xor
 ```
 PTS = 50
 HIDDEN = 10
@@ -34,7 +34,7 @@ data = minitorch.datasets["Xor"](PTS)
 Epoch  500  loss  14.184495586232694 correct 45
 ```
 
-##Diag
+## Diag
 ```
 PTS = 50
 HIDDEN = 10
