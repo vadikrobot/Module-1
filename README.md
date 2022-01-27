@@ -6,7 +6,6 @@
 * Overview: https://minitorch.github.io/module1.html
 
 Results of optimization on Datasets
-
 ### Simple
 ```
 PTS = 50
@@ -15,8 +14,8 @@ RATE = 0.5
 data = minitorch.datasets["Simple"](PTS)
 Epoch  500  loss  0.700677858267683 correct 50
 ```
-
-### Split
+![Loss](Simple_Loss.png)
+###Split
 ```
 PTS = 50
 HIDDEN = 10
@@ -24,7 +23,7 @@ RATE = 0.5
 data = minitorch.datasets["Split"](PTS)
 Epoch  500  loss  3.4009029420130488 correct 49
 ```
-
+![Loss](Split_Loss.png)
 ### Xor
 ```
 PTS = 50
@@ -33,12 +32,13 @@ RATE = 0.5
 data = minitorch.datasets["Xor"](PTS)
 Epoch  500  loss  14.184495586232694 correct 45
 ```
-
+![Loss](Xor_Loss.png)
 ## Diag
 ```
 PTS = 50
-HIDDEN = 10
+HIDDEN = 4
 RATE = 0.5
 data = minitorch.datasets["Diag"](PTS)
-Epoch  500  loss  1.0522085094129574 correct 50
+Epoch  500  loss  1.9800 correct 50
 ```
+![Loss](Diag_Loss.png)
